@@ -1,21 +1,21 @@
 import Link from 'next/link';
-import { getSession } from '@/lib/session';
 import { backendPost } from '@/lib/backend';
 
-interface ClienteResumen {
-  id: number;
-  nombre: string;
+interface PersonaRaw {
+  nombre: string | null;
+  apellidoPaterno: string | null;
+  apellidoMaterno: string | null;
   telefono: string | null;
-  vale_id: number | null;
-  estado: string;
+}
+
+interface ClienteRaw {
+  id: number;
+  estado: string | null;
+  persona: PersonaRaw;
 }
 
 export default async function ClientesPage() {
-  const { userId } = await getSession();
-
-  const { ok, data, message } = await backendPost<ClienteResumen[]>('/api/distribuidoras/consultar/clientes', {
-    usuario_id: userId,
-  });
+  const { ok, data, message } = await backendPost<ClienteRaw[]>('/api/distribuidoras/consultar/clientes', {});
 
   if (!ok || !data) {
     return (
@@ -63,29 +63,37 @@ export default async function ClientesPage() {
             Aún no tienes clientes registrados.
           </div>
         ) : (
-          data.map((cliente, i) => (
-            <Link
-              key={cliente.id}
-              href={`/distribuidor/clientes/${cliente.id}`}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '14px 0',
-                borderBottom: i < data.length - 1 ? '1px solid var(--color-border)' : 'none',
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{cliente.nombre}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-placeholder)' }}>{cliente.telefono ?? 'Sin teléfono'}</div>
-              </div>
-              <span className={cliente.estado === 'ACTIVO' ? 'badge badge-success' : 'badge badge-neutral'}>
-                {cliente.estado === 'ACTIVO' ? 'Activo' : cliente.estado}
-              </span>
-            </Link>
-          ))
+          data.map((cliente, i) => {
+            const nombre = [cliente.persona?.nombre, cliente.persona?.apellidoPaterno]
+              .filter(Boolean)
+              .join(' ') || 'Sin nombre';
+
+            return (
+              <Link
+                key={cliente.id}
+                href={`/distribuidor/clientes/${cliente.id}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 0',
+                  borderBottom: i < data.length - 1 ? '1px solid var(--color-border)' : 'none',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{nombre}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-placeholder)' }}>
+                    {cliente.persona?.telefono ?? 'Sin teléfono'}
+                  </div>
+                </div>
+                <span className={cliente.estado === 'ACTIVO' ? 'badge badge-success' : 'badge badge-neutral'}>
+                  {cliente.estado === 'ACTIVO' ? 'Activo' : (cliente.estado ?? 'Inactivo')}
+                </span>
+              </Link>
+            );
+          })
         )}
       </div>
     </>

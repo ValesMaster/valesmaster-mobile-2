@@ -2,8 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { getSession } from '@/lib/session';
-import { backendPost } from '@/lib/backend';
+import { backendPost, backendPatch } from '@/lib/backend';
 
 export interface ClienteFormState {
   error: string | null;
@@ -13,8 +12,6 @@ export async function crearClienteAction(
   _prevState: ClienteFormState,
   formData: FormData
 ): Promise<ClienteFormState> {
-  const { userId } = await getSession();
-
   const nombre = formData.get('nombre')?.toString().trim();
   const estado = formData.get('estado')?.toString().trim();
   const municipio = formData.get('municipio')?.toString().trim();
@@ -28,7 +25,6 @@ export async function crearClienteAction(
   }
 
   const { ok, message } = await backendPost('/api/distribuidoras/crear/cliente', {
-    usuario_id: userId,
     nombre,
     apellido_paterno: formData.get('apellido_paterno')?.toString().trim() || null,
     apellido_materno: formData.get('apellido_materno')?.toString().trim() || null,
@@ -52,31 +48,34 @@ export async function crearClienteAction(
   redirect('/distribuidor/clientes');
 }
 
+/**
+ * Solo permite modificar datos de persona y dirección
+ * (el endpoint real /modificar/cliente/:id no acepta estado ni observaciones del cliente).
+ * Los campos de dirección solo se envían si el usuario escribió algo,
+ * para no sobreescribir con vacío lo que ya existía.
+ */
 export async function actualizarClienteAction(
   clienteId: number,
   _prevState: ClienteFormState,
   formData: FormData
 ): Promise<ClienteFormState> {
-  const { userId } = await getSession();
-
   const nombre = formData.get('nombre')?.toString().trim();
-  const estado_cliente = formData.get('estado_cliente')?.toString().trim();
 
-  if (!nombre || !estado_cliente) {
-    return { error: 'Completa todos los campos obligatorios.' };
+  if (!nombre) {
+    return { error: 'El nombre es obligatorio.' };
   }
 
-  const { ok, message } = await backendPost('/api/distribuidoras/actualizar/cliente', {
-    usuario_id: userId,
-    cliente_id: clienteId,
-    nombre,
-    apellido_paterno: formData.get('apellido_paterno')?.toString().trim() || null,
-    apellido_materno: formData.get('apellido_materno')?.toString().trim() || null,
-    telefono: formData.get('telefono')?.toString().trim() || null,
-    genero: formData.get('genero')?.toString().trim() || null,
-    estado_cliente,
-    observaciones: formData.get('observaciones')?.toString().trim() || null,
-  });
+  const body: Record<string, unknown> = { nombre };
+
+  const opcionalesPersona = ['apellido_paterno', 'apellido_materno', 'telefono', 'genero', 'fecha_nacimiento'];
+  const opcionalesDireccion = ['estado', 'municipio', 'codigo_postal', 'colonia', 'calle', 'numero_exterior', 'numero_interior', 'referencia'];
+
+  for (const campo of [...opcionalesPersona, ...opcionalesDireccion]) {
+    const valor = formData.get(campo)?.toString().trim();
+    if (valor) body[campo] = valor;
+  }
+
+  const { ok, message } = await backendPatch(`/api/distribuidoras/modificar/cliente/${clienteId}`, body);
 
   if (!ok) {
     return { error: message ?? 'No se pudo actualizar el cliente.' };
@@ -88,12 +87,7 @@ export async function actualizarClienteAction(
 }
 
 export async function eliminarClienteAction(clienteId: number) {
-  const { userId } = await getSession();
-
-  await backendPost('/api/distribuidoras/eliminar/cliente', {
-    usuario_id: userId,
-    cliente_id: clienteId,
-  });
+  await backendPatch(`/api/distribuidoras/eliminar/cliente/${clienteId}`);
 
   revalidatePath('/distribuidor/clientes');
   redirect('/distribuidor/clientes');

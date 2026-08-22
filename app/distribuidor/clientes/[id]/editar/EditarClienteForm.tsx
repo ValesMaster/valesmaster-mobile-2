@@ -3,15 +3,17 @@
 import { useActionState } from 'react';
 import { actualizarClienteAction, ClienteFormState } from '../../actions';
 
-interface ClienteDetalle {
-  id: number;
-  nombre: string;
-  apellido_paterno: string | null;
-  apellido_materno: string | null;
+interface PersonaRaw {
+  nombre: string | null;
+  apellidoPaterno: string | null;
+  apellidoMaterno: string | null;
   telefono: string | null;
   genero: string | null;
-  estado_cliente: string;
-  observaciones: string | null;
+}
+
+interface ClienteRaw {
+  id: number;
+  persona: PersonaRaw;
 }
 
 const initialState: ClienteFormState = { error: null };
@@ -24,7 +26,7 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 8,
 };
 
-export default function EditarClienteForm({ cliente }: { cliente: ClienteDetalle }) {
+export default function EditarClienteForm({ cliente }: { cliente: ClienteRaw }) {
   const actionWithId = actualizarClienteAction.bind(null, cliente.id);
   const [state, formAction, isPending] = useActionState(actionWithId, initialState);
 
@@ -33,14 +35,14 @@ export default function EditarClienteForm({ cliente }: { cliente: ClienteDetalle
       <form action={formAction}>
         <SectionLabel>Datos personales</SectionLabel>
 
-        <Field label="Nombre" name="nombre" defaultValue={cliente.nombre} required />
-        <Field label="Apellido paterno" name="apellido_paterno" defaultValue={cliente.apellido_paterno ?? ''} />
-        <Field label="Apellido materno" name="apellido_materno" defaultValue={cliente.apellido_materno ?? ''} />
-        <Field label="Teléfono" name="telefono" type="tel" defaultValue={cliente.telefono ?? ''} />
+        <Field label="Nombre" name="nombre" defaultValue={cliente.persona?.nombre ?? ''} required />
+        <Field label="Apellido paterno" name="apellido_paterno" defaultValue={cliente.persona?.apellidoPaterno ?? ''} />
+        <Field label="Apellido materno" name="apellido_materno" defaultValue={cliente.persona?.apellidoMaterno ?? ''} />
+        <Field label="Teléfono" name="telefono" type="tel" defaultValue={cliente.persona?.telefono ?? ''} />
 
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Género</label>
-          <select name="genero" className="form-input" defaultValue={cliente.genero ?? ''}>
+          <select name="genero" className="form-input" defaultValue={cliente.persona?.genero ?? ''}>
             <option value="">Selecciona</option>
             <option value="M">Masculino</option>
             <option value="F">Femenino</option>
@@ -48,17 +50,19 @@ export default function EditarClienteForm({ cliente }: { cliente: ClienteDetalle
           </select>
         </div>
 
-        <SectionLabel>Estado del cliente</SectionLabel>
+        <SectionLabel>Dirección (opcional)</SectionLabel>
+        <p style={{ fontSize: 12, color: 'var(--text-placeholder)', marginBottom: 14 }}>
+          Solo llena los campos que quieras actualizar. Los que dejes en blanco no se modifican.
+        </p>
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Estado</label>
-          <select name="estado_cliente" className="form-input" defaultValue={cliente.estado_cliente} required>
-            <option value="ACTIVO">Activo</option>
-            <option value="INACTIVO">Inactivo</option>
-          </select>
-        </div>
-
-        <Field label="Observaciones (opcional)" name="observaciones" defaultValue={cliente.observaciones ?? ''} />
+        <Field label="Estado" name="estado" />
+        <Field label="Municipio" name="municipio" />
+        <Field label="Código postal" name="codigo_postal" />
+        <Field label="Colonia" name="colonia" />
+        <Field label="Calle" name="calle" />
+        <Field label="Número exterior" name="numero_exterior" />
+        <Field label="Número interior" name="numero_interior" />
+        <Field label="Referencia" name="referencia" />
 
         {state.error && <p className="error-message" style={{ marginBottom: 12 }}>{state.error}</p>}
 

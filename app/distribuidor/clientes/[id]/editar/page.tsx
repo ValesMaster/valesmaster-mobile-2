@@ -1,27 +1,24 @@
 import { notFound } from 'next/navigation';
-import { getSession } from '@/lib/session';
-import { backendPost } from '@/lib/backend';
+import { backendGet } from '@/lib/backend';
 import EditarClienteForm from './EditarClienteForm';
 
-interface ClienteDetalle {
-  id: number;
-  nombre: string;
-  apellido_paterno: string | null;
-  apellido_materno: string | null;
+interface PersonaRaw {
+  nombre: string | null;
+  apellidoPaterno: string | null;
+  apellidoMaterno: string | null;
   telefono: string | null;
   genero: string | null;
-  estado_cliente: string;
-  observaciones: string | null;
+}
+
+interface ClienteRaw {
+  id: number;
+  persona: PersonaRaw;
 }
 
 export default async function EditarClientePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { userId } = await getSession();
 
-  const { ok, data } = await backendPost<ClienteDetalle>('/api/distribuidoras/consultar/cliente', {
-    usuario_id: userId,
-    cliente_id: Number(id),
-  });
+  const { ok, data } = await backendGet<ClienteRaw>(`/api/distribuidoras/obtener/cliente/${id}`);
 
   if (!ok || !data) {
     notFound();
