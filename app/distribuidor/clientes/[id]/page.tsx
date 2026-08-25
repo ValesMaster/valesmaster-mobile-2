@@ -53,7 +53,23 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+      {data.estado === 'ACTIVO' && (
+        <Link
+          href={`/distribuidor/clientes/${data.id}/solicitar-vale`}
+          className="btn-primary"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 20,
+            textDecoration: 'none',
+          }}
+        >
+          Solicitar vale
+        </Link>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
         <Link
           href={`/distribuidor/clientes/${data.id}/editar`}
           style={{

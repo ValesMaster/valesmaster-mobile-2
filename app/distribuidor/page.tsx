@@ -71,7 +71,7 @@ export default async function DashboardPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <MenuItem href="/distribuidor/estado-cuenta" label="Estado de cuenta" desc="Próximamente" />
+        <MenuItem href="/distribuidor/estado-cuenta" label="Estado de cuenta" desc="Tus vales y solicitudes" />
         <MenuItem href="/distribuidor/canjes" label="Historial de canjes" desc="Próximamente" />
         <MenuItem href="/distribuidor/clientes" label="Mis clientes" desc="Gestiona tus clientes" />
       </div>
