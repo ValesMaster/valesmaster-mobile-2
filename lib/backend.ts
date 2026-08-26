@@ -1,6 +1,6 @@
 import { getSession } from './session';
 
-const BACKEND_URL = process.env.BACKEND_URL ?? 'https://pastelito/api';
+const BACKEND_URL = process.env.BACKEND_URL ?? 'https://pastelito';
 const TIMEOUT_MS = 8000;
 
 export interface BackendResponse<T = unknown> {
