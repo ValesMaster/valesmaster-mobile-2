@@ -1,7 +1,6 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import Link from 'next/link';
 import { loginAction, LoginState } from './actions';
 
 const initialState: LoginState = { error: null };
@@ -83,7 +82,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div style={{ marginBottom: 18 }}>
+            <div style={{ marginBottom: 24 }}>
               <label htmlFor="password" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
                 Contraseña
               </label>
@@ -115,16 +114,6 @@ export default function LoginPage() {
                   {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-                <input type="checkbox" name="remember" />
-                Recordarme
-              </label>
-              <Link href="#" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'none' }}>
-                ¿Olvidaste tu contraseña?
-              </Link>
             </div>
 
             <button type="submit" className="btn-primary" disabled={isPending}>
