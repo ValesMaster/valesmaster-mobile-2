@@ -23,6 +23,14 @@ async function backendRequest<T = unknown>(
       method,
       headers: {
         'Content-Type': 'application/json',
+        // Rutas protegidas con requireVpn en el backend exigen este header.
+        // OJO: este fetch corre en el servidor de Next (server actions), no
+        // en el telefono de la distribuidora, asi que esto solo tiene efecto
+        // si ESTE servidor esta dentro de la red/infra que tu balanceador
+        // reconoce como VPN. Si no es asi, el LB lo va a limpiar y esas
+        // rutas seguiran devolviendo 403 para la distribuidora (revisa la
+        // nota que dejo abajo de la respuesta).
+        'x-via-vpn': 'true',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: body ? JSON.stringify(body) : undefined,

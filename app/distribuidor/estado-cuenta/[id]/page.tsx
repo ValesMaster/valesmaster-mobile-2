@@ -7,6 +7,14 @@ interface PersonaRaw {
   apellidoMaterno: string | null;
 }
 
+interface PagoEstimadoRaw {
+  pagable: boolean;
+  incluyeAtrasoAnterior: boolean;
+  multaEstimada: number;
+  montoSiSePagaHoy: number;
+  tipoComportamientoEstimado: string;
+}
+
 interface PagoRaw {
   id: number;
   quincena: number;
@@ -15,6 +23,7 @@ interface PagoRaw {
   fechaPago: string | null;
   cantidadAPagar: number;
   cantidadPagada: number;
+  estimado: PagoEstimadoRaw | null;
 }
 
 interface ValeDetalleRaw {
@@ -98,32 +107,53 @@ export default async function ValeDetallePage({ params }: { params: Promise<{ id
       </div>
 
       <div className="card" style={{ padding: '8px 20px' }}>
-        {data.pagos.map((pago, i) => (
-          <div
-            key={pago.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '14px 0',
-              borderBottom: i < data.pagos.length - 1 ? '1px solid var(--color-border)' : 'none',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Quincena {pago.quincena}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-placeholder)' }}>
-                Corte: {formatFecha(pago.fechaCorte)}
-                {pago.fechaPago && ` · Pagado: ${formatFecha(pago.fechaPago)}`}
+        {data.pagos.map((pago, i) => {
+          const conAtraso = pago.estado === 'PENDIENTE' && pago.estimado?.incluyeAtrasoAnterior;
+
+          return (
+            <div
+              key={pago.id}
+              style={{
+                padding: '14px 0',
+                borderBottom: i < data.pagos.length - 1 ? '1px solid var(--color-border)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Quincena {pago.quincena}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-placeholder)' }}>
+                    Corte: {formatFecha(pago.fechaCorte)}
+                    {pago.fechaPago && ` · Pagado: ${formatFecha(pago.fechaPago)}`}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>
+                    ${Number(conAtraso ? pago.estimado!.montoSiSePagaHoy : pago.cantidadAPagar).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </div>
+                  <span className={badgeClase(pago.estado)}>{badgeTexto(pago.estado)}</span>
+                </div>
               </div>
+
+              {conAtraso && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: 'var(--color-warning, #b45309)',
+                    background: 'var(--color-warning-bg, rgba(180, 83, 9, 0.1))',
+                    borderRadius: 8,
+                    padding: '8px 10px',
+                  }}
+                >
+                  Incluye la quincena {pago.quincena - 1} (vencida y sin pagar) más una multa de $
+                  {Number(pago.estimado!.multaEstimada).toLocaleString('es-MX', { minimumFractionDigits: 2 })}.
+                  Monto normal de esta quincena: $
+                  {Number(pago.cantidadAPagar).toLocaleString('es-MX', { minimumFractionDigits: 2 })}.
+                </div>
+              )}
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>
-                ${Number(pago.cantidadAPagar).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-              </div>
-              <span className={badgeClase(pago.estado)}>{badgeTexto(pago.estado)}</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );
